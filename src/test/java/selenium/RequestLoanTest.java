@@ -1,55 +1,31 @@
 package selenium;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.Select;
+import selenium.models.User;
+import selenium.pages.*;
 
-public class RequestLoanTest {
+public class RequestLoanTest extends TestBase {
 
     @Test
-    public void requestLoan() throws InterruptedException {
+    public void requestLoan() {
 
-        // Set up Chrome driver
-        WebDriverManager.chromedriver().setup();
-        WebDriver driver = new ChromeDriver();
-        driver.manage().window().maximize();
+        User user = new User("john", "demo");
 
-        // Navigate to application
-        driver.get("https://parabank.parasoft.com");
-
-        // Log in
-        driver.findElement(By.name("username")).sendKeys("john");
-        driver.findElement(By.name("password")).sendKeys("demo");
-        driver.findElement(By.xpath("//input[@value='Log In']")).click();
+        new LoginPage(driver)
+                .loginAs(user);
 
         // Go to Request Loan page
-        driver.findElement(By.linkText("Request Loan")).click();
+        new AccountsOverviewPage(driver)
+                .selectMenuItem("Request Loan");
 
         // Fill in loan application form
-        driver.findElement(By.id("amount")).sendKeys("10000");
-        driver.findElement(By.id("downPayment")).sendKeys("1000");
+        new RequestLoanPage(driver)
+                .applyForLoan("10000", "1000", "12345");
 
-        // TODO For some reason we need to wait here...
-        Thread.sleep(2000);
-
-        Select dropdownFromAccountId = new Select(driver.findElement(By.id("fromAccountId")));
-        dropdownFromAccountId.selectByVisibleText("12345");
-
-        driver.findElement(By.xpath("//input[@value='Apply Now']")).click();
-
-        // Assert on result
-        // TODO for some reason we need to wait here, too...
-
-        Thread.sleep(2000);
-
-        String result = driver.findElement(By.id("loanStatus")).getText();
+        String result = new RequestLoanResultPage(driver)
+                .getLoanApplicationResult();
 
         Assertions.assertEquals("Denied", result);
-
-        driver.quit();
     }
 }
